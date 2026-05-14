@@ -89,7 +89,7 @@ export default async function AdminAuditPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {(logs as AuditLog[]).map((log) => (
+            {(logs as AuditLog[]).map((log: AuditLog) => (
               <tr key={log.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div className="text-[10px] font-black text-foreground">

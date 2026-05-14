@@ -71,7 +71,7 @@ export default async function AdminDashboard() {
           { label: 'Active Debt', val: outstanding, sub: 'Exposure', color: 'text-amber-500' },
           { label: 'Total Repaid', val: repaid, sub: 'Recovery', color: 'text-emerald-500' },
           { label: 'Recovery', val: `${loans > 0 ? Math.round((repaid / loans) * 100) : 100}%`, sub: 'Rate', color: 'text-kova-midnight' }
-        ].map((kpi) => (
+        ].map((kpi: { label: string; val: string | number; sub: string; color: string }) => (
           <div key={kpi.label} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:border-emerald-100 transition-all">
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">{kpi.label}</p>
             <p className={`text-xl font-light tracking-tighter mt-2 font-display ${kpi.color}`}>
@@ -98,13 +98,13 @@ export default async function AdminDashboard() {
               { label: 'Loan Applications', count: pendingLoans, href: '/admin/loans', color: 'text-amber-500', dot: 'bg-amber-400' },
               { label: 'Repayment Proofs', count: pendingRepayments, href: '/admin/repayments', color: 'text-emerald-500', dot: 'bg-emerald-400' },
               { label: 'Contribution Logs', count: pendingContributions, href: '/secretary/verify-payments', color: 'text-emerald-500', dot: 'bg-emerald-400' },
-            ].map(({ label, count, href, color, dot }) => (
-              <Link key={label} href={href} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all group">
+            ].map((item: { label: string; count: number; href: string; color: string; dot: string }) => (
+              <Link key={item.label} href={item.href} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all group">
                 <div className="flex items-center gap-3">
-                  <div className={`h-1 w-1 rounded-full ${count > 0 ? dot : 'bg-slate-100'}`}></div>
-                  <span className="text-[11px] font-medium text-slate-600 group-hover:text-slate-900">{label}</span>
+                  <div className={`h-1 w-1 rounded-full ${item.count > 0 ? item.dot : 'bg-slate-100'}`}></div>
+                  <span className="text-[11px] font-medium text-slate-600 group-hover:text-slate-900">{item.label}</span>
                 </div>
-                <span className={`text-[11px] font-black tracking-tight ${count > 0 ? color : 'text-slate-200'}`}>{count || '—'}</span>
+                <span className={`text-[11px] font-black tracking-tight ${item.count > 0 ? item.color : 'text-slate-200'}`}>{item.count || '—'}</span>
               </Link>
             ))}
           </div>
@@ -122,14 +122,14 @@ export default async function AdminDashboard() {
               { href: '/admin/loans', label: 'Credit Control', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
               { href: '/admin/repayments', label: 'Asset Recovery', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
               { href: '/admin/audit', label: 'Security Audit', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
-            ].map(({ href, label, icon }) => (
-              <Link key={href} href={href} className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl hover:bg-kova-midnight group transition-all border border-slate-50">
+            ].map((link: { href: string; label: string; icon: string }) => (
+              <Link key={link.href} href={link.href} className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl hover:bg-kova-midnight group transition-all border border-slate-50">
                 <div className="h-7 w-7 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:bg-white/10 transition-colors">
                   <svg className="h-3.5 w-3.5 text-slate-400 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d={link.icon} />
                   </svg>
                 </div>
-                <p className="text-[11px] font-semibold text-slate-700 group-hover:text-white leading-tight">{label}</p>
+                <p className="text-[11px] font-semibold text-slate-700 group-hover:text-white leading-tight">{link.label}</p>
               </Link>
             ))}
           </div>

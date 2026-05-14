@@ -50,13 +50,13 @@ export default async function DashboardLayout({
               { href: '/member/loans', label: 'Loans', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
               { href: '/member/payments', label: 'Payments', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 0 012-2h2a2 2 0 012 2' },
               { href: '/member/foodstuffs', label: 'Logistics', icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' },
-            ].map(({ href, label, icon }) => (
-              <Link key={href} href={href}
+            ].map((item: { href: string; label: string; icon: string }) => (
+              <Link key={item.href} href={item.href}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.03] transition-all group mb-1">
                 <svg className="h-4 w-4 flex-shrink-0 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={icon} />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={item.icon} />
                 </svg>
-                <span className="text-[13px] font-medium tracking-tight">{label}</span>
+                <span className="text-[13px] font-medium tracking-tight">{item.label}</span>
               </Link>
             ))}
           </div>
@@ -69,13 +69,13 @@ export default async function DashboardLayout({
                 { href: '/secretary', label: 'Command', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2' },
                 { href: '/secretary/verify-payments', label: 'Verify', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
                 { href: '/secretary/foodstuff-orders', label: 'Orders', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-              ].map(({ href, label, icon }) => (
-                <Link key={href} href={href}
+              ].map((item: { href: string; label: string; icon: string }) => (
+                <Link key={item.href} href={item.href}
                   className="flex items-center gap-3 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.03] transition-all group mb-1">
                   <svg className="h-4 w-4 flex-shrink-0 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={item.icon} />
                   </svg>
-                  <span className="text-[13px] font-medium tracking-tight">{label}</span>
+                  <span className="text-[13px] font-medium tracking-tight">{item.label}</span>
                 </Link>
               ))}
             </div>
@@ -92,13 +92,13 @@ export default async function DashboardLayout({
                 { href: '/admin/repayments', label: 'Repayments', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' },
                 { href: '/admin/foodstuffs', label: 'Catalog', icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z' },
                 { href: '/admin/audit', label: 'Audit Trail', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' },
-              ].map(({ href, label, icon }) => (
-                <Link key={href} href={href}
+              ].map((link: { href: string; label: string; icon: string }) => (
+                <Link key={link.href} href={link.href}
                   className="flex items-center gap-3 px-3 py-2 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.03] transition-all group mb-1">
                   <svg className="h-4 w-4 flex-shrink-0 group-hover:text-emerald-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={icon} />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={link.icon} />
                   </svg>
-                  <span className="text-[13px] font-medium tracking-tight">{label}</span>
+                  <span className="text-[13px] font-medium tracking-tight">{link.label}</span>
                 </Link>
               ))}
             </div>
