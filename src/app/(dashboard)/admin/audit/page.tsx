@@ -1,6 +1,14 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { AuditLog } from '@prisma/client'
+// Types defined inline to bypass Vercel Prisma cache issues
+interface AuditLog {
+  id: string
+  action: string
+  entityId: string
+  entityType: string
+  details: any
+  createdAt: Date
+}
 
 export default async function AdminAuditPage({
   searchParams,
