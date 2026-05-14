@@ -20,6 +20,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "KOVA | Collective Wealth. Redefined.",
   description: "KOVA is a secure, transparent co-operative financial platform. Manage savings, loans, and logistics with confidence.",
   keywords: "cooperative, savings, loans, fintech, Nigeria, KOVA",

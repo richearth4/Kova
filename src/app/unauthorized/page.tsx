@@ -2,33 +2,39 @@ import Link from 'next/link'
 
 export default function UnauthorizedPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full text-center">
-        <div className="flex justify-center mb-6">
-          <div className="bg-red-100 p-3 rounded-full">
-            <svg className="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="max-w-md w-full text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-amber-50 text-amber-500 shadow-sm border border-amber-100">
+          <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
         </div>
-        <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Access Denied</h1>
-        <p className="text-lg text-gray-600 mb-8">
-          You do not have the required permissions to view this page. If you believe this is an error, please contact the system administrator.
-        </p>
-        <div className="space-y-4">
+        
+        <div className="space-y-3">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Access Restricted</h2>
+          <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">
+            Your current security clearance does not allow access to this sector of the network.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
           <Link
             href="/member"
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="px-8 py-3 bg-kova-midnight text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:shadow-emerald-500/20 transition-all hover:-translate-y-0.5"
           >
-            Back to Member Portal
+            Go to Member Portal
           </Link>
           <Link
             href="/"
-            className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="px-8 py-3 bg-white border border-slate-200 text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all"
           >
             Return Home
           </Link>
         </div>
+
+        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest pt-8">
+          KOVA · Collective Wealth Redefined
+        </p>
       </div>
     </div>
   )

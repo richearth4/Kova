@@ -21,10 +21,11 @@ export async function GET(request: Request) {
           where: { id: user.id }
         })
 
+        const email = user.email || ''
+
         if (!dbUser) {
           // Extract info from user metadata
           const fullName = user.user_metadata?.full_name || ''
-          const email = user.email || ''
           
           // Split name if possible
           const names = fullName.split(' ')
