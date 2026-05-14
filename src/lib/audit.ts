@@ -1,11 +1,11 @@
 import { prisma } from './prisma'
-import { Prisma } from '@prisma/client'
 
 interface AuditOptions {
   action: string
   entityId: string
   entityType: string
-  details?: Prisma.InputJsonValue
+  details?: Record<string, unknown> | any
+
 }
 
 export async function logAudit({ action, entityId, entityType, details }: AuditOptions) {

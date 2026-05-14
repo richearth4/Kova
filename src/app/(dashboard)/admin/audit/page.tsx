@@ -1,6 +1,6 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { Prisma, AuditLog } from '@prisma/client'
+import { AuditLog } from '@prisma/client'
 
 export default async function AdminAuditPage({
   searchParams,
@@ -16,7 +16,7 @@ export default async function AdminAuditPage({
 
   await requireRole(['ADMIN'])
 
-  const where: Prisma.AuditLogWhereInput = {}
+  const where: { action?: { contains: string }, entityType?: string } = {}
   if (action && action !== 'ALL') where.action = { contains: action }
   if (entity && entity !== 'ALL') where.entityType = entity
 
