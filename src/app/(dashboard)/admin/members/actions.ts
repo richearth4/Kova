@@ -7,6 +7,34 @@ import { Role } from '@prisma/client'
 import { logAudit } from '@/lib/audit'
 import { createAdminClient } from '@/lib/supabase/server'
 
+export async function updateStaffId(userId: string, staffId: string) {
+  const admin = await requireRole(['ADMIN'])
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { staffId },
+    })
+    
+    await logAudit({
+      action: 'MEMBER_STAFF_ID_UPDATE',
+      entityId: userId,
+      entityType: 'USER',
+      details: {
+        staffId,
+        updatedBy: admin.id,
+        email: updatedUser.email
+      }
+    })
+
+    revalidatePath('/admin/members')
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to update staff ID:', error)
+    return { success: false, error: 'Failed to update staff ID' }
+  }
+}
+
 export async function updateUserRole(userId: string, newRole: Role) {
   const admin = await requireRole(['ADMIN'])
 

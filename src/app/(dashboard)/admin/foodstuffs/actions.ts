@@ -10,6 +10,10 @@ export async function addFoodstuffItem(formData: FormData) {
   const name = formData.get('name') as string
   const price = parseFloat(formData.get('price') as string)
 
+  if (!name || isNaN(price) || price <= 0) {
+    return { success: false, error: 'Item name and a valid price are required' }
+  }
+
   try {
     await prisma.foodstuffItem.create({
       data: { name, price }
@@ -29,4 +33,24 @@ export async function toggleItemAvailability(id: string, available: boolean) {
   })
   revalidatePath('/admin/foodstuffs')
   revalidatePath('/member/foodstuffs')
+}
+
+export async function updateFoodstuffPrice(id: string, price: number) {
+  await requireRole(['ADMIN', 'SECRETARY'])
+
+  if (isNaN(price) || price <= 0) {
+    return { success: false, error: 'Invalid price' }
+  }
+
+  try {
+    await prisma.foodstuffItem.update({
+      where: { id },
+      data: { price }
+    })
+    revalidatePath('/admin/foodstuffs')
+    revalidatePath('/member/foodstuffs')
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'Failed to update price' }
+  }
 }

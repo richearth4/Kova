@@ -1,4 +1,4 @@
-import { prisma } from './src/lib/prisma';
+import { prisma } from '../src/lib/prisma';
 import fs from 'fs';
 
 async function generateTemplate() {
@@ -10,7 +10,7 @@ async function generateTemplate() {
     });
 
     let csvContent = 'StaffId,Amount,Name(Optional)\n';
-    users.forEach(user => {
+    users.forEach((user: { staffId: string | null; firstName: string; lastName: string }) => {
       csvContent += `${user.staffId},0.00,"${user.firstName} ${user.lastName}"\n`;
     });
 

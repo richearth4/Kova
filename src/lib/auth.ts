@@ -14,19 +14,13 @@ export async function requireAuth() {
     where: { id: user.id },
   })
 
-  const allUsersWithEmail = await prisma.user.findMany({
-    where: { email: dbUser?.email || '' }
-  })
-
-  console.log(`[AUTH] DEBUG: ID=${user.id}, Email=${dbUser?.email}, Active=${dbUser?.active}, TotalFound=${allUsersWithEmail.length}`)
-
   if (!dbUser) {
-    console.error(`[AUTH] User record not found for ID: ${user.id}`)
+    console.error(`[AUTH] User record not found for Supabase ID: ${user.id}`)
     redirect('/login?error=User record not found in database')
   }
 
   if (!dbUser.active) {
-    console.error(`[AUTH] Account suspended for ID: ${user.id}, Email: ${dbUser.email}, Name: ${dbUser.firstName}`)
+    console.error(`[AUTH] Account suspended: ${dbUser.email}`)
     redirect('/login?error=Account suspended. Contact administration.')
   }
 

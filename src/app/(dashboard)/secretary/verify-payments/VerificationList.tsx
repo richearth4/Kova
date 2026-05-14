@@ -8,7 +8,7 @@ interface Payment {
   amount: number | string
   type: string
   details: string
-  fileUrl: string
+  fileUrl: string | null
   user: {
     firstName: string
     lastName: string
@@ -73,9 +73,13 @@ export default function VerificationList({
                 )}
               </td>
               <td className="px-4 py-4">
-                <a href={payment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
-                  View Receipt
-                </a>
+                {payment.fileUrl ? (
+                  <a href={payment.fileUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-primary hover:underline uppercase tracking-widest">
+                    View Receipt
+                  </a>
+                ) : (
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No File</span>
+                )}
               </td>
               <td className="px-4 py-4 text-right space-x-2">
                 <button

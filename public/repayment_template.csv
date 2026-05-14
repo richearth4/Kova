@@ -1,6 +1,4 @@
-StaffId,Amount,Type(LOAN/SAVINGS),GoalId(Optional),Name(Optional)
-MEM001,50000,LOAN,,John Mark
-SEC001,25000,SAVINGS,,Rita Linker
-ADM001,100000,SAVINGS,goal-uuid-here,Imoh Udoh
-STF-001,15000,SAVINGS,,John Doe
-004,20000,LOAN,,Test Tester
+StaffId,Amount,Type,GoalId
+INEC001,5000,LOAN,
+INEC002,3000,SAVINGS,
+INEC003,2500,SAVINGS,goal-uuid-here

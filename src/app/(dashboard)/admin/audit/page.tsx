@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 export default async function AdminAuditPage({
   searchParams,
 }: {
-  searchParams: Promise<{ action?: string, entity?: string }>
+  searchParams: Promise<{ action?: string, entity?: string, page?: string }>
 }) {
   const params = await searchParams
   const action = params.action

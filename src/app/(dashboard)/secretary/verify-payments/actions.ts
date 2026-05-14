@@ -4,9 +4,10 @@ import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { createNotification } from '@/lib/notifications'
+import { logAudit } from '@/lib/audit'
 
 export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'REJECTED', type: string) {
-  await requireRole(['SECRETARY', 'ADMIN'])
+  const dbUser = await requireRole(['SECRETARY', 'ADMIN'])
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -25,6 +26,18 @@ export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'RE
             where: { id: payment.contribution.id },
             data: { status }
           })
+
+          // Update SavingsTarget.savedAmount if contribution is linked to a goal
+          if (status === 'CONFIRMED' && payment.contribution.savingsTargetId) {
+            await tx.savingsTarget.update({
+              where: { id: payment.contribution.savingsTargetId },
+              data: {
+                savedAmount: {
+                  increment: payment.contribution.amount
+                }
+              }
+            })
+          }
         }
         return { userId: payment.userId, amount: payment.amount, type: 'Contribution' }
       } else {
@@ -37,16 +50,25 @@ export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'RE
       }
     })
 
-    const title = `${result.type} ${status.toLowerCase()}`
+    const title = `${result.type} ${status === 'CONFIRMED' ? 'Approved' : 'Rejected'}`
     const message = status === 'CONFIRMED' 
       ? `Your ${result.type.toLowerCase()} of ₦${Number(result.amount).toLocaleString()} has been verified.`
-      : `Your ${result.type.toLowerCase()} proof for ₦${Number(result.amount).toLocaleString()} was rejected.`
+      : `Your ${result.type.toLowerCase()} proof for ₦${Number(result.amount).toLocaleString()} was rejected. Please re-submit with a valid receipt.`
 
     await createNotification(result.userId, title, message)
 
+    await logAudit({
+      action: `PAYMENT_${status}`,
+      entityId: paymentId,
+      entityType: type === 'CONTRIBUTION' ? 'CONTRIBUTION' : 'REPAYMENT',
+      details: { verifiedBy: dbUser.id, status, amount: result.amount.toString() }
+    })
+
     revalidatePath('/secretary/verify-payments')
+    revalidatePath('/admin/repayments')
+    revalidatePath('/admin')
     revalidatePath('/member')
-    revalidatePath('/admin/loans')
+    revalidatePath('/member/savings')
     
     return { success: true }
   } catch (error) {
@@ -54,3 +76,4 @@ export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'RE
     return { success: false, error: 'Failed to update payment status' }
   }
 }
+

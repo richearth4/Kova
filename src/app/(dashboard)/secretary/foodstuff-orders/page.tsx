@@ -15,37 +15,48 @@ export default async function SecretaryFoodstuffsPage() {
       }
     },
     include: {
-      user: true
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          staffId: true,
+        }
+      }
     },
     orderBy: {
       createdAt: 'desc'
     }
   })
 
+  const serializedOrders = orders.map(o => ({
+    id: o.id,
+    userId: o.userId,
+    description: o.description,
+    totalCost: o.totalCost.toString(),
+    status: o.status,
+    createdAt: o.createdAt.toISOString(),
+    user: o.user,
+  }))
+
+  const pendingCount = orders.filter(o => o.status === 'PENDING').length
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Foodstuff Order Processing</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            View and export the monthly foodstuff distribution records for salary deductions.
+    <div className="max-w-6xl mx-auto space-y-4 animate-in fade-in duration-700">
+      {/* Header */}
+      <div className="flex items-center justify-between px-1">
+        <div>
+          <h1 className="text-lg font-light tracking-tight text-slate-900 font-display">Logistics Operations</h1>
+          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">
+            Current Period: <span className="text-emerald-500">{new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
+            {pendingCount > 0 && (
+              <span className="ml-2 text-amber-500">&bull; {pendingCount} Awaiting Action</span>
+            )}
           </p>
         </div>
       </div>
 
-      <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center gap-4">
-        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div>
-          <p className="text-sm font-bold text-blue-900">Current Period: {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</p>
-          <p className="text-xs text-blue-700">Total Orders: {orders.length}</p>
-        </div>
-      </div>
-
-      <DeductionSummary orders={JSON.parse(JSON.stringify(orders))} />
+      <DeductionSummary orders={serializedOrders} />
     </div>
   )
 }
+

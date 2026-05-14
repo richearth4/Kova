@@ -33,8 +33,8 @@ export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRME
           })
 
           // Trigger SMS alerts for loan completion
-          const completionMessage = `Congratulations ${updated.loan.user.firstName}, your loan (ID: ${updated.loan.id.slice(0,8)}) has been fully repaid and is now CLOSED.`
-          
+          const completionMessage = `Congratulations ${updated.loan.user.firstName}, your loan (ID: ${updated.loan.id.slice(0, 8)}) has been fully repaid and is now CLOSED.`
+
           // 1. Notify Member
           await sendSMSNotification(updated.loan.userId, completionMessage)
 
@@ -43,8 +43,8 @@ export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRME
             where: { role: 'ADMIN' },
             select: { id: true }
           })
-          
-          const adminAlert = `Loan Completion Alert: Member ${updated.loan.user.firstName} ${updated.loan.user.lastName} has completed repayment for loan ${updated.loan.id.slice(0,8)}.`
+
+          const adminAlert = `Loan Completion Alert: Member ${updated.loan.user.firstName} ${updated.loan.user.lastName} has completed repayment for loan ${updated.loan.id.slice(0, 8)}.`
           for (const admin of admins) {
             await sendSMSNotification(admin.id, adminAlert)
           }
@@ -57,7 +57,7 @@ export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRME
     await createNotification(
       repayment.loan.userId,
       `Loan Repayment ${status === 'CONFIRMED' ? 'Approved' : 'Rejected'}`,
-      `Your repayment of ₦${Number(repayment.amount).toLocaleString()} has been ${status.toLowerCase()}.`
+      `Your repayment of ₦${Number(repayment.amount).toLocaleString()} has been ${status === 'CONFIRMED' ? 'approved' : 'rejected'}.`
     )
 
     await logAudit({
@@ -68,7 +68,9 @@ export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRME
     })
 
     revalidatePath('/admin/repayments')
+    revalidatePath('/secretary/verify-payments')
     revalidatePath('/admin/loans')
+    revalidatePath('/admin')
     revalidatePath('/member/loans')
     revalidatePath('/member')
     return { success: true }
@@ -89,9 +91,8 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
           // 1. Find User by Staff ID
           const user = await tx.user.findUnique({
             where: { staffId: entry.staffId },
-            include: { 
+            include: {
               loans: { where: { status: 'ACTIVE' }, take: 1 },
-              savings: entry.goalId ? { where: { id: entry.goalId } } : undefined
             }
           })
 
@@ -101,7 +102,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
             const activeLoan = user.loans[0]
             if (!activeLoan) throw new Error(`No active loan found for Staff ID ${entry.staffId}`)
 
-            const repayment = await tx.loanRepayment.create({
+            await tx.loanRepayment.create({
               data: {
                 loanId: activeLoan.id,
                 amount: entry.amount,
@@ -126,19 +127,33 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
               await sendSMSNotification(user.id, `Loan Payment: ₦${entry.amount.toLocaleString()} received via HR deduction.`)
             }
           } else {
-            // SAVINGS
-            const contribution = await tx.contribution.create({
+            // SAVINGS — validate goalId belongs to user if provided
+            let resolvedGoalId: string | null = null
+            if (entry.goalId) {
+              const target = await tx.savingsTarget.findFirst({
+                where: { id: entry.goalId, userId: user.id }
+              })
+              if (!target) throw new Error(`Savings goal ${entry.goalId} not found for Staff ID ${entry.staffId}`)
+              resolvedGoalId = target.id
+            }
+
+            await tx.contribution.create({
               data: {
                 userId: user.id,
                 amount: entry.amount,
-                month: new Date(), // Current month deduction
+                month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
                 status: 'CONFIRMED',
-                savingsTargetId: entry.goalId || null
+                savingsTargetId: resolvedGoalId
               }
             })
 
-            if (entry.goalId) {
-              const target = await tx.savingsTarget.findUnique({ where: { id: entry.goalId } })
+            // Update SavingsTarget.savedAmount if linked
+            if (resolvedGoalId) {
+              await tx.savingsTarget.update({
+                where: { id: resolvedGoalId },
+                data: { savedAmount: { increment: entry.amount } }
+              })
+              const target = await tx.savingsTarget.findUnique({ where: { id: resolvedGoalId } })
               await sendSMSNotification(user.id, `Savings Goal Update: ₦${entry.amount.toLocaleString()} credited to your "${target?.goalName}" goal.`)
             } else {
               await sendSMSNotification(user.id, `Contribution Received: ₦${entry.amount.toLocaleString()} added to your total savings.`)
@@ -160,6 +175,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
     }
 
     revalidatePath('/admin/repayments')
+    revalidatePath('/admin')
     revalidatePath('/member/loans')
     revalidatePath('/member/savings')
     revalidatePath('/member')

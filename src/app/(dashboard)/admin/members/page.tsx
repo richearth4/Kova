@@ -7,7 +7,7 @@ import BulkImport from './BulkImport'
 export default async function ManageMembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string, role?: string }>
+  searchParams: Promise<{ query?: string, role?: string, page?: string }>
 }) {
   const params = await searchParams
   const query = params.query
