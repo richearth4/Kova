@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MEMBER
+  SECRETARY
+  ADMIN
+}
+
+enum LoanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_INFO
+  ACTIVE
+  CLOSED
+  OVERDUE
+}
+
+enum LoanType {
+  LAND
+  PERSONAL
+  ELECTRONIC
+  CAR
+  SOFT
+}
+
+enum PaymentStatus {
+  PENDING_VERIFICATION
+  CONFIRMED
+  REJECTED
+}
+
+model User {
+  id            String    @id
+  email         String    @unique
+  firstName     String
+  lastName      String
+  staffId       String?   @unique
+  phoneNumber   String?
+  role          Role      @default(MEMBER)
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  contributions Contribution[]
+  loans         Loan[]
+  savings       SavingsTarget[]
+  foodstuffs    FoodstuffOrder[]
+  payments      PaymentProof[]
+  notifications Notification[]
+}
+
+model Contribution {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  amount          Decimal  @db.Decimal(10, 2)
+  month           DateTime
+  status          PaymentStatus @default(PENDING_VERIFICATION)
+  paymentProofId  String?  @unique
+  paymentProof    PaymentProof? @relation(fields: [paymentProofId], references: [id])
+  savingsTargetId String?
+  savingsTarget   SavingsTarget? @relation(fields: [savingsTargetId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Loan {
+  id             String     @id @default(uuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id])
+  principal      Decimal    @db.Decimal(10, 2)
+  interestAmount Decimal    @db.Decimal(10, 2)
+  totalRepayment Decimal    @db.Decimal(10, 2)
+  durationMonths Int
+  status         LoanStatus @default(PENDING)
+  loanType       LoanType   @default(PERSONAL)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  repayments     LoanRepayment[]
+}
+
+model LoanRepayment {
+  id          String   @id @default(uuid())
+  loanId      String
+  loan        Loan     @relation(fields: [loanId], references: [id])
+  amount      Decimal  @db.Decimal(10, 2)
+  fileUrl     String?
+  status      PaymentStatus @default(PENDING_VERIFICATION)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SavingsTarget {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  goalName     String
+  targetAmount Decimal  @db.Decimal(10, 2)
+  savedAmount  Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contributions Contribution[]
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+model FoodstuffItem {
+  id          String   @id @default(uuid())
+  name        String
+  price       Decimal  @db.Decimal(10, 2)
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FoodstuffOrder {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  description String
+  totalCost   Decimal  @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  month       DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PaymentProof {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  fileUrl       String
+  amount        Decimal  @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING_VERIFICATION)
+  contribution  Contribution?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entityId  String
+  entityType String
+  details   Json
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #020617;
+  
+  --primary: #10B981;
+  --primary-foreground: #FFFFFF;
+  
+  --secondary: #F59E0B;
+  --secondary-foreground: #FFFFFF;
+
+  --accent: #1E3A5F;
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --muted: #94A3B8;
+  --muted-foreground: #64748B;
+
+  --card: #FFFFFF;
+  --card-foreground: #020617;
+
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #10B981;
+
+  /* KOVA Specific Tokens */
+  --kova-midnight: #020617;
+  --kova-emerald: #10B981;
+  --kova-gold: #F59E0B;
+  --kova-cobalt: #1E3A5F;
+  --kova-arctic: #F8FAFC;
+  --kova-sidebar: #020617;
+}
+
+.dark {
+  --background: #020617;
+  --foreground: #F8FAFC;
+  
+  --primary: #10B981;
+  --primary-foreground: #020617;
+  
+  --secondary: #F59E0B;
+  --secondary-foreground: #020617;
+
+  --accent: #1E3A5F;
+  --accent-foreground: #FFFFFF;
+
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+
+  --card: #0F172A;
+  --card-foreground: #F8FAFC;
+
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #10B981;
+
+  --kova-midnight: #020617;
+  --kova-sidebar: #020617;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  /* KOVA color utilities */
+  --color-kova-midnight: var(--kova-midnight);
+  --color-kova-emerald: var(--kova-emerald);
+  --color-kova-gold: var(--kova-gold);
+  --color-kova-cobalt: var(--kova-cobalt);
+  --color-kova-sidebar: var(--kova-sidebar);
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui;
+  --font-display: var(--font-display), var(--font-inter), ui-sans-serif, system-ui;
+  --font-mono: var(--font-mono), ui-monospace, SFMono-Regular;
+  
+  --font-size-tiny: 0.625rem;
+  --radius-pro: 12px;
+  --shadow-pro: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+  }
+
+  /* Compact & Elegant Typography */
+  h1 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; @apply text-foreground; }
+  h2 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 500; letter-spacing: -0.02em; @apply text-foreground; }
+  h3 { font-family: var(--font-display); font-size: 0.95rem; font-weight: 500; letter-spacing: -0.01em; @apply text-foreground; }
+
+  p { font-size: 0.8125rem; line-height: 1.5; @apply text-muted-foreground; font-weight: 400; }
+}
+
+@layer utilities {
+  .text-tiny { font-size: var(--font-size-tiny); }
+  
+  /* Banking-style Table — Compact */
+  .pro-table-header {
+    font-size: 0.58rem;
+    @apply font-semibold text-slate-400 uppercase tracking-[0.25em] py-1.5 px-3 border-b border-slate-50;
+  }
+
+  .pro-table-row {
+    @apply text-[11px] font-normal text-slate-500 border-b border-slate-50 transition-colors hover:bg-slate-50/30;
+  }
+
+  /* Stat & Label Utilities */
+  .pro-stat-label {
+    @apply text-[9px] font-semibold text-slate-400 uppercase tracking-[0.15em] leading-none;
+  }
+
+  .pro-heading-display {
+    @apply font-display font-light tracking-tight text-slate-900;
+  }
+
+  /* KOVA Brand Utilities */
+  .kova-sidebar {
+    background-color: var(--kova-midnight);
+  }
+  .kova-logo-text {
+    font-family: var(--font-display), var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+  }
+}
+
+/* Scrollbar refinement */
+aside::-webkit-scrollbar { width: 3px; }
+aside::-webkit-scrollbar-track { background: transparent; }
+aside::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
