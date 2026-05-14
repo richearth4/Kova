@@ -8,7 +8,7 @@ interface ReportOptions {
   subtitle?: string
   filename: string
   headers: string[]
-  data: any[][]
+  data: (string | number | boolean)[][]
   footer?: string
 }
 

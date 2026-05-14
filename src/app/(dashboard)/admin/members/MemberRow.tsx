@@ -5,7 +5,9 @@ import MemberRoleForm from './MemberRoleForm'
 import MemberDetailsModal from './MemberDetailsModal'
 import StaffIdEditor from './StaffIdEditor'
 
-export default function MemberRow({ member }: { member: any }) {
+import { User } from '@prisma/client'
+
+export default function MemberRow({ member }: { member: User }) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (

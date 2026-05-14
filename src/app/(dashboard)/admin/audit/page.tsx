@@ -1,5 +1,6 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma, AuditLog } from '@prisma/client'
 
 export default async function AdminAuditPage({
   searchParams,
@@ -15,7 +16,7 @@ export default async function AdminAuditPage({
 
   await requireRole(['ADMIN'])
 
-  const where: any = {}
+  const where: Prisma.AuditLogWhereInput = {}
   if (action && action !== 'ALL') where.action = { contains: action }
   if (entity && entity !== 'ALL') where.entityType = entity
 
@@ -88,7 +89,7 @@ export default async function AdminAuditPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {logs.map((log) => (
+            {(logs as AuditLog[]).map((log) => (
               <tr key={log.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-4 whitespace-nowrap">
                   <div className="text-[10px] font-black text-foreground">

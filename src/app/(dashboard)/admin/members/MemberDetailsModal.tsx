@@ -2,11 +2,13 @@
 
 import React from 'react'
 
+import { User } from '@prisma/client'
+
 export default function MemberDetailsModal({ 
   member, 
   onClose 
 }: { 
-  member: any, 
+  member: User, 
   onClose: () => void 
 }) {
   return (
