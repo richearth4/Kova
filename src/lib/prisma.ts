@@ -11,7 +11,7 @@ const globalForPrisma = globalThis as unknown as {
 // 1. Create/Reuse Pool
 if (!globalForPrisma.pool) {
   globalForPrisma.pool = new Pool({ 
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/postgres',
     max: 10, // Reduced from 20 to stay within Supabase's 15-connection limit
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
