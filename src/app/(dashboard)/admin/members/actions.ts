@@ -62,15 +62,34 @@ export async function updateUserRole(userId: string, newRole: Role) {
     return { success: false, error: 'Failed to update user role' }
   }
 }
+function parseCSVLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current.trim())
+  return result.map(val => val.replace(/^["']|["']$/g, '').trim())
+}
+
 export async function bulkImportMembers(csvContent: string) {
   await requireRole(['ADMIN'])
   const supabase = await createAdminClient()
 
   try {
-    const lines = csvContent.split('\n').filter(l => l.trim())
+    const lines = csvContent.split(/\r?\n/).filter(l => l.trim())
     if (lines.length < 2) return { success: false, error: 'CSV is empty' }
 
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase())
     const firstNameIdx = headers.indexOf('first name')
     const lastNameIdx = headers.indexOf('last name')
     const emailIdx = headers.indexOf('email')
@@ -83,7 +102,7 @@ export async function bulkImportMembers(csvContent: string) {
     const results = { created: 0, updated: 0, failed: 0 }
 
     for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(',').map(c => c.trim())
+      const cols = parseCSVLine(lines[i])
       if (cols.length < headers.length) continue
 
       const email = cols[emailIdx]
@@ -95,6 +114,8 @@ export async function bulkImportMembers(csvContent: string) {
         results.failed++
         continue
       }
+
+      let authDataId: string | null = null
 
       try {
         const existing = await prisma.user.findUnique({ where: { email } })
@@ -119,6 +140,8 @@ export async function bulkImportMembers(csvContent: string) {
             continue
           }
 
+          authDataId = authData.user.id
+
           // Then create in Prisma using the same ID
           await prisma.user.create({
             data: {
@@ -135,6 +158,16 @@ export async function bulkImportMembers(csvContent: string) {
       } catch (e) {
         console.error(`Prisma operation failed for ${email}:`, e)
         results.failed++
+        
+        // Transactional rollback: delete dangling Supabase Auth user if Prisma save failed
+        if (authDataId) {
+          try {
+            console.warn(`[ROLLBACK] Deleting stranded Supabase Auth user ${authDataId} for ${email}`)
+            await supabase.auth.admin.deleteUser(authDataId)
+          } catch (rollbackError) {
+            console.error('[ROLLBACK] Failed to delete stranded Supabase Auth user:', rollbackError)
+          }
+        }
       }
     }
 

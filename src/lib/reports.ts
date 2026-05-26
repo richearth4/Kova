@@ -79,3 +79,37 @@ export function generatePDF({ title, subtitle, filename, headers, data, footer }
 
   doc.save(`${filename}.pdf`)
 }
+
+export function generateCSV({ title, filename, headers, data }: Omit<ReportOptions, 'subtitle' | 'footer'>) {
+  const csvRows: string[] = []
+
+  const escapeValue = (val: string | number | boolean) => {
+    const stringVal = String(val)
+    if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n') || stringVal.includes('\r')) {
+      return `"${stringVal.replace(/"/g, '""')}"`
+    }
+    return stringVal
+  }
+
+  // 1. Add headers row
+  csvRows.push(headers.map(escapeValue).join(','))
+
+  // 2. Add data rows
+  for (const row of data) {
+    csvRows.push(row.map(escapeValue).join(','))
+  }
+
+  const csvContent = csvRows.join('\n')
+
+  // 3. Create blob with UTF-8 BOM (\uFEFF) for Excel compatibility
+  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  
+  const link = document.createElement('a')
+  link.setAttribute('href', url)
+  link.setAttribute('download', `${filename}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}

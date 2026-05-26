@@ -1,17 +1,23 @@
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import PaymentUploadForm from './PaymentUploadForm'
+import { getSignedUrl } from '@/lib/supabase/server'
 
 export default async function PaymentsPage() {
   const { dbUser } = await requireAuth()
 
-  const paymentHistory = (await prisma.paymentProof.findMany({
+  const payments = await prisma.paymentProof.findMany({
     where: { userId: dbUser.id },
     orderBy: { createdAt: 'desc' },
-  })).map(payment => ({
-    ...payment,
-    amount: payment.amount.toString(),
-  }))
+  })
+
+  const paymentHistory = await Promise.all(
+    payments.map(async (payment) => ({
+      ...payment,
+      amount: payment.amount.toString(),
+      fileUrl: (await getSignedUrl(payment.fileUrl)) || '',
+    }))
+  )
 
   const savingsTargets = await prisma.savingsTarget.findMany({
     where: { userId: dbUser.id },

@@ -1,6 +1,7 @@
 import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import VerificationList from './VerificationList'
+import { getSignedUrl } from '@/lib/supabase/server'
 
 export default async function VerifyPaymentsPage() {
   await requireRole(['SECRETARY', 'ADMIN'])
@@ -18,29 +19,31 @@ export default async function VerifyPaymentsPage() {
     })
   ])
 
-  // Map to unified structure
-  const pendingVerifications = [
-    ...contributionProofs.map(p => ({
+  // Map to unified structure with resolved signed URLs
+  const pendingVerifications = await Promise.all([
+    ...contributionProofs.map(async (p) => ({
       id: p.id,
       type: 'CONTRIBUTION',
       userId: p.userId,
       user: p.user,
       amount: p.amount.toString(),
-      fileUrl: p.fileUrl,
+      fileUrl: await getSignedUrl(p.fileUrl),
       createdAt: p.createdAt,
       details: p.contribution ? `Contribution: ${new Date(p.contribution.month).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}` : 'Contribution'
     })),
-    ...loanRepayments.map(r => ({
+    ...loanRepayments.map(async (r) => ({
       id: r.id,
       type: 'LOAN_REPAYMENT',
       userId: r.loan.userId,
       user: r.loan.user,
       amount: r.amount.toString(),
-      fileUrl: r.fileUrl,
+      fileUrl: await getSignedUrl(r.fileUrl),
       createdAt: r.createdAt,
       details: `Loan Repayment (#${r.loan.id.slice(0, 4)})`
     }))
-  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  ])
+  
+  pendingVerifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 animate-in fade-in duration-700">

@@ -16,8 +16,29 @@ export async function applyForLoan(formData: FormData) {
     return { success: false, error: 'Invalid principal amount' }
   }
 
-  // Simple interest calculation: 5% flat rate for now
-  const interestRate = 0.05
+  // 1. Calculate max eligible: 3x total confirmed contributions (SRS specification)
+  const contributions = await prisma.contribution.aggregate({
+    where: { 
+      userId: dbUser.id,
+      status: 'CONFIRMED'
+    },
+    _sum: {
+      amount: true
+    }
+  })
+
+  const totalContributions = Number(contributions._sum.amount || 0)
+  const maxEligible = totalContributions * 3
+
+  if (principal > maxEligible) {
+    return { 
+      success: false, 
+      error: `Requested loan (₦${principal.toLocaleString()}) exceeds your contribution eligibility limit of ₦${maxEligible.toLocaleString()} (3x your ₦${totalContributions.toLocaleString()} total confirmed contributions)` 
+    }
+  }
+
+  // 2. Simple interest calculation: 10% flat rate (SRS specification)
+  const interestRate = 0.10
   const interestAmount = principal * interestRate
   const totalRepayment = principal + interestAmount
 

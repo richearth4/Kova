@@ -30,17 +30,13 @@ export async function uploadLoanRepayment(formData: FormData) {
     return { success: false, error: 'Failed to upload image' }
   }
 
-  const { data: { publicUrl } } = supabase.storage
-    .from('payment-proofs')
-    .getPublicUrl(fileName)
-
   // 2. Save to Database
   try {
     await prisma.loanRepayment.create({
       data: {
         loanId,
         amount: parseFloat(amount),
-        fileUrl: publicUrl,
+        fileUrl: fileName, // Save private relative storage path
         status: 'PENDING_VERIFICATION',
       },
     })
@@ -50,6 +46,12 @@ export async function uploadLoanRepayment(formData: FormData) {
     return { success: true }
   } catch (dbError) {
     console.error('Database error:', dbError)
+    // Secure rollback: clean up uploaded storage file on db error
+    try {
+      await supabase.storage.from('payment-proofs').remove([fileName])
+    } catch (cleanupError) {
+      console.error('Failed to remove orphaned storage file:', cleanupError)
+    }
     return { success: false, error: 'Failed to save repayment record' }
   }
 }

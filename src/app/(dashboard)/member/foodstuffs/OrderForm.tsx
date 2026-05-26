@@ -21,14 +21,12 @@ export default function OrderForm({ items }: { items: any[] }) {
     if (totalCost === 0) return
 
     setIsLoading(true)
-    const description = items
+    const activeItems = items
       .filter(item => cart[item.id] > 0)
-      .map(item => `${item.name} (x${cart[item.id]})`)
-      .join(', ')
+      .map(item => ({ id: item.id, quantity: cart[item.id] }))
 
     const formData = new FormData()
-    formData.append('description', description)
-    formData.append('totalCost', totalCost.toString())
+    formData.append('itemsJson', JSON.stringify(activeItems))
 
     try {
       const result = await placeFoodstuffOrder(formData)

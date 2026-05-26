@@ -40,3 +40,25 @@ export async function createAdminClient() {
     }
   )
 }
+
+export async function getSignedUrl(filePath: string | null) {
+  if (!filePath) return null
+  if (filePath.startsWith('http')) return filePath // legacy support for public URLs
+
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.storage
+      .from('payment-proofs')
+      .createSignedUrl(filePath, 600) // 10 minutes (600 seconds) TTL
+
+    if (error) {
+      console.error('[STORAGE] Error generating signed URL:', error)
+      return null
+    }
+
+    return data.signedUrl
+  } catch (err) {
+    console.error('[STORAGE] Failed to get signed URL:', err)
+    return null
+  }
+}

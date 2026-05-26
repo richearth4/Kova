@@ -31,11 +31,6 @@ export async function uploadPaymentProof(formData: FormData) {
     return { success: false, error: 'Failed to upload image' }
   }
 
-  // Get public URL
-  const { data: { publicUrl } } = supabase.storage
-    .from('payment-proofs')
-    .getPublicUrl(fileName)
-
   // 2. Save to Database using a Transaction
   try {
     await prisma.$transaction(async (tx) => {
@@ -43,7 +38,7 @@ export async function uploadPaymentProof(formData: FormData) {
         data: {
           userId: dbUser.id,
           amount: parseFloat(amount),
-          fileUrl: publicUrl,
+          fileUrl: fileName, // Save private relative storage path
           status: 'PENDING_VERIFICATION',
         },
       })
@@ -65,6 +60,12 @@ export async function uploadPaymentProof(formData: FormData) {
     return { success: true }
   } catch (dbError) {
     console.error('Database error:', dbError)
+    // Secure rollback: clean up uploaded storage file on db error
+    try {
+      await supabase.storage.from('payment-proofs').remove([fileName])
+    } catch (cleanupError) {
+      console.error('Failed to remove orphaned storage file:', cleanupError)
+    }
     return { success: false, error: 'Failed to save payment record' }
   }
 }

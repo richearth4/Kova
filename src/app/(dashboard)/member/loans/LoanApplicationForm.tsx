@@ -9,7 +9,7 @@ export default function LoanApplicationForm({ maxEligible }: { maxEligible: numb
   const [duration, setDuration] = useState('6')
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
-  const interestRate = 0.05
+  const interestRate = 0.10
   const interestAmount = (parseFloat(amount) || 0) * interestRate
   const totalRepayment = (parseFloat(amount) || 0) + interestAmount
   const monthlyInstallment = totalRepayment / parseInt(duration)
@@ -109,7 +109,7 @@ export default function LoanApplicationForm({ maxEligible }: { maxEligible: numb
 
         <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-50 space-y-2">
           <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
-            <span>Service Fee (5%):</span>
+            <span>Interest Charge (10%):</span>
             <span className="text-slate-900">₦{interestAmount.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">

@@ -7,7 +7,7 @@ import LoanStatementButton from './LoanStatementButton'
 export default async function LoansPage() {
   const { dbUser } = await requireAuth()
 
-  // Calculate max eligible: 2x total contributions
+  // Calculate max eligible: 3x total contributions (per SRS)
   const contributions = await prisma.contribution.aggregate({
     where: { 
       userId: dbUser.id,
@@ -19,7 +19,7 @@ export default async function LoansPage() {
   })
 
   const totalContributions = Number(contributions._sum.amount || 0)
-  const maxEligible = totalContributions * 2
+  const maxEligible = totalContributions * 3
 
   const loanHistory = (await prisma.loan.findMany({
     where: { userId: dbUser.id },

@@ -2,11 +2,12 @@ import { requireRole } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import RepaymentVerifyList from './RepaymentVerifyList'
 import BulkRepaymentUpload from './BulkRepaymentUpload'
+import { getSignedUrl } from '@/lib/supabase/server'
 
 export default async function AdminRepaymentsPage() {
   await requireRole(['ADMIN', 'SECRETARY'])
 
-  const pendingRepayments = (await prisma.loanRepayment.findMany({
+  const repaymentsList = await prisma.loanRepayment.findMany({
     where: { status: 'PENDING_VERIFICATION' },
     include: { 
       loan: {
@@ -14,16 +15,21 @@ export default async function AdminRepaymentsPage() {
       }
     },
     orderBy: { createdAt: 'asc' },
-  })).map(r => ({
-    ...r,
-    amount: r.amount.toString(),
-    loan: {
-      ...r.loan,
-      principal: r.loan.principal.toString(),
-      interestAmount: r.loan.interestAmount.toString(),
-      totalRepayment: r.loan.totalRepayment.toString(),
-    }
-  }))
+  })
+
+  const pendingRepayments = await Promise.all(
+    repaymentsList.map(async (r) => ({
+      ...r,
+      amount: r.amount.toString(),
+      fileUrl: await getSignedUrl(r.fileUrl),
+      loan: {
+        ...r.loan,
+        principal: r.loan.principal.toString(),
+        interestAmount: r.loan.interestAmount.toString(),
+        totalRepayment: r.loan.totalRepayment.toString(),
+      }
+    }))
+  )
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-in fade-in duration-700">
