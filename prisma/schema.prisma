@@ -36,28 +36,85 @@ enum PaymentStatus {
   REJECTED
 }
 
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  TRIALING
+  INACTIVE
+}
+
+model Organization {
+  id             String         @id @default(uuid())
+  name           String
+  slug           String         @unique
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  subscription   Subscription?
+  
+  users          User[]
+  contributions  Contribution[]
+  loans          Loan[]
+  loanRepayments LoanRepayment[]
+  savingsTargets SavingsTarget[]
+  foodstuffItems FoodstuffItem[]
+  foodstuffOrders FoodstuffOrder[]
+  paymentProofs  PaymentProof[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+}
+
+model Subscription {
+  id               String             @id @default(uuid())
+  organizationId   String?            @unique
+  organization     Organization?      @relation(fields: [organizationId], references: [id])
+  userId           String?            @unique
+  user             User?              @relation(fields: [userId], references: [id])
+  status           SubscriptionStatus @default(INACTIVE)
+  planId           String?
+  gateway          String?
+  currentPeriodEnd DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
 model User {
   id            String    @id
+  tenantId      String
+  tenant        Organization @relation(fields: [tenantId], references: [id])
   email         String    @unique
   firstName     String
   lastName      String
-  staffId       String?   @unique
+  staffId       String?
   phoneNumber   String?
   role          Role      @default(MEMBER)
   active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  subscription  Subscription?
   contributions Contribution[]
   loans         Loan[]
   savings       SavingsTarget[]
   foodstuffs    FoodstuffOrder[]
   payments      PaymentProof[]
   notifications Notification[]
+
+  @@unique([tenantId, staffId])
 }
 
 model Contribution {
   id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Organization @relation(fields: [tenantId], references: [id])
   userId          String
   user            User     @relation(fields: [userId], references: [id])
   amount          Decimal  @db.Decimal(10, 2)
@@ -73,6 +130,8 @@ model Contribution {
 
 model Loan {
   id             String     @id @default(uuid())
+  tenantId       String
+  tenant         Organization @relation(fields: [tenantId], references: [id])
   userId         String
   user           User       @relation(fields: [userId], references: [id])
   principal      Decimal    @db.Decimal(10, 2)
@@ -89,6 +148,8 @@ model Loan {
 
 model LoanRepayment {
   id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Organization @relation(fields: [tenantId], references: [id])
   loanId      String
   loan        Loan     @relation(fields: [loanId], references: [id])
   amount      Decimal  @db.Decimal(10, 2)
@@ -100,6 +161,8 @@ model LoanRepayment {
 
 model SavingsTarget {
   id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Organization @relation(fields: [tenantId], references: [id])
   userId       String
   user         User     @relation(fields: [userId], references: [id])
   goalName     String
@@ -111,15 +174,10 @@ model SavingsTarget {
   contributions Contribution[]
 }
 
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  CANCELLED
-}
-
 model FoodstuffItem {
   id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Organization @relation(fields: [tenantId], references: [id])
   name        String
   price       Decimal  @db.Decimal(10, 2)
   available   Boolean  @default(true)
@@ -129,6 +187,8 @@ model FoodstuffItem {
 
 model FoodstuffOrder {
   id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Organization @relation(fields: [tenantId], references: [id])
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   description String
@@ -141,6 +201,8 @@ model FoodstuffOrder {
 
 model PaymentProof {
   id            String   @id @default(uuid())
+  tenantId      String
+  tenant        Organization @relation(fields: [tenantId], references: [id])
   userId        String
   user          User     @relation(fields: [userId], references: [id])
   fileUrl       String
@@ -153,6 +215,8 @@ model PaymentProof {
 
 model Notification {
   id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Organization @relation(fields: [tenantId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   title     String
@@ -163,6 +227,8 @@ model Notification {
 
 model AuditLog {
   id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Organization @relation(fields: [tenantId], references: [id])
   action    String
   entityId  String
   entityType String

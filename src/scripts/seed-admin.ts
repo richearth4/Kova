@@ -8,12 +8,19 @@ async function seedAdmin() {
   console.log('Seeding admin user...')
 
   try {
+    const org = await prisma.organization.upsert({
+      where: { slug: 'system-org' },
+      update: {},
+      create: { name: 'System Organization', slug: 'system-org' }
+    })
+
     const user = await prisma.user.upsert({
       where: { id: userId },
       update: {
         role: 'ADMIN',
       },
       create: {
+        tenantId: org.id,
         id: userId,
         email: email,
         firstName: 'System',

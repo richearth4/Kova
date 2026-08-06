@@ -88,9 +88,14 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
     for (const entry of data) {
       try {
         await prisma.$transaction(async (tx) => {
-          // 1. Find User by Staff ID
+          // 1. Find User by Staff ID within Tenant
           const user = await tx.user.findUnique({
-            where: { staffId: entry.staffId },
+            where: { 
+              tenantId_staffId: {
+                tenantId: dbUser.tenantId,
+                staffId: entry.staffId
+              }
+            },
             include: {
               loans: { where: { status: 'ACTIVE' }, take: 1 },
             }
@@ -104,6 +109,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
 
             await tx.loanRepayment.create({
               data: {
+                tenantId: dbUser.tenantId,
                 loanId: activeLoan.id,
                 amount: entry.amount,
                 status: 'CONFIRMED',
@@ -139,6 +145,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
 
             await tx.contribution.create({
               data: {
+                tenantId: dbUser.tenantId,
                 userId: user.id,
                 amount: entry.amount,
                 month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),

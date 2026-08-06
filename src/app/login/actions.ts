@@ -30,6 +30,7 @@ export async function login(formData: FormData) {
     console.log(`[AUTH] Healing missing Prisma record for user: ${data.user.email}`)
     await prisma.user.create({
       data: {
+        tenantId: data.user.user_metadata?.tenantId || 'unassigned',
         id: data.user.id,
         email: data.user.email!,
         firstName: data.user.user_metadata?.firstName || 'User',

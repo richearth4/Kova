@@ -82,7 +82,7 @@ function parseCSVLine(line: string): string[] {
 }
 
 export async function bulkImportMembers(csvContent: string) {
-  await requireRole(['ADMIN'])
+  const dbUser = await requireRole(['ADMIN'])
   const supabase = await createAdminClient()
 
   try {
@@ -145,6 +145,7 @@ export async function bulkImportMembers(csvContent: string) {
           // Then create in Prisma using the same ID
           await prisma.user.create({
             data: {
+              tenantId: dbUser.tenantId,
               id: authData.user.id,
               email,
               firstName,

@@ -36,6 +36,7 @@ export async function uploadPaymentProof(formData: FormData) {
     await prisma.$transaction(async (tx) => {
       const payment = await tx.paymentProof.create({
         data: {
+          tenantId: dbUser.tenantId,
           userId: dbUser.id,
           amount: parseFloat(amount),
           fileUrl: fileName, // Save private relative storage path
@@ -45,6 +46,7 @@ export async function uploadPaymentProof(formData: FormData) {
 
       await tx.contribution.create({
         data: {
+          tenantId: dbUser.tenantId,
           userId: dbUser.id,
           amount: parseFloat(amount),
           month: new Date(`${month}-01`),

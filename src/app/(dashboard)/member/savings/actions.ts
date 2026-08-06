@@ -17,6 +17,7 @@ export async function createSavingsTarget(formData: FormData) {
   try {
     await prisma.savingsTarget.create({
       data: {
+        tenantId: dbUser.tenantId,
         userId: dbUser.id,
         goalName,
         targetAmount,

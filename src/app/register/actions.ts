@@ -33,6 +33,7 @@ export async function register(formData: FormData) {
   try {
     await prisma.user.create({
       data: {
+        tenantId: authData.user.user_metadata?.tenantId || 'unassigned',
         id: authData.user.id,
         email,
         firstName,

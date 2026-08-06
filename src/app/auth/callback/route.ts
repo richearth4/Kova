@@ -34,6 +34,7 @@ export async function GET(request: Request) {
 
           await prisma.user.create({
             data: {
+              tenantId: user.user_metadata?.tenantId || 'unassigned',
               id: user.id,
               email: email,
               firstName: firstName,

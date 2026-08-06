@@ -5,7 +5,7 @@ import { requireRole } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
 export async function addFoodstuffItem(formData: FormData) {
-  await requireRole(['ADMIN', 'SECRETARY'])
+  const dbUser = await requireRole(['ADMIN', 'SECRETARY'])
 
   const name = formData.get('name') as string
   const price = parseFloat(formData.get('price') as string)
@@ -16,7 +16,7 @@ export async function addFoodstuffItem(formData: FormData) {
 
   try {
     await prisma.foodstuffItem.create({
-      data: { name, price }
+      data: { tenantId: dbUser.tenantId, name, price }
     })
     revalidatePath('/admin/foodstuffs')
     return { success: true }

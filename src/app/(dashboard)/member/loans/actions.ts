@@ -45,6 +45,7 @@ export async function applyForLoan(formData: FormData) {
   try {
     await prisma.loan.create({
       data: {
+        tenantId: dbUser.tenantId,
         userId: dbUser.id,
         principal,
         interestAmount,

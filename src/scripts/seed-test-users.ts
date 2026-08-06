@@ -27,6 +27,12 @@ async function seed() {
 
   console.log('🚀 Provisioning Test Accounts...')
 
+  const org = await prisma.organization.upsert({
+    where: { slug: 'test-org' },
+    update: {},
+    create: { name: 'Test Organization', slug: 'test-org' }
+  })
+
   for (const u of users) {
     // 1. Get User ID (Create or Fetch)
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
@@ -53,6 +59,7 @@ async function seed() {
       where: { id: userId },
       update: { role: u.role as any, active: true },
       create: {
+        tenantId: org.id,
         id: userId,
         email: u.email,
         firstName: u.first,

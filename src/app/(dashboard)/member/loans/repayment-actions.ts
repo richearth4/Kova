@@ -34,6 +34,7 @@ export async function uploadLoanRepayment(formData: FormData) {
   try {
     await prisma.loanRepayment.create({
       data: {
+        tenantId: dbUser.tenantId,
         loanId,
         amount: parseFloat(amount),
         fileUrl: fileName, // Save private relative storage path

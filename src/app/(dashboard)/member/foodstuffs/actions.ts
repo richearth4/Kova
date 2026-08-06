@@ -51,6 +51,7 @@ export async function placeFoodstuffOrder(formData: FormData) {
 
     await prisma.foodstuffOrder.create({
       data: {
+        tenantId: dbUser.tenantId,
         userId: dbUser.id,
         description,
         totalCost: calculatedCost,

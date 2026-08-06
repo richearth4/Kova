@@ -21,9 +21,16 @@ export async function sendSMSNotification(userId: string, message: string) {
 
 export async function createNotification(userId: string, title: string, message: string) {
   try {
+    const userLookup = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { tenantId: true, email: true }
+    })
+    const tenantId = userLookup?.tenantId || 'unassigned'
+
     // 1. Create In-App Notification
     await prisma.notification.create({
       data: {
+        tenantId,
         userId,
         title,
         message,
@@ -31,15 +38,10 @@ export async function createNotification(userId: string, title: string, message:
     })
 
     // 2. Send Email via Resend
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true }
-    })
-
-    if (user?.email) {
+    if (userLookup?.email) {
       await resend.emails.send({
         from: 'INEC Cooperative <onboarding@resend.dev>', // Change this to your domain later
-        to: user.email,
+        to: userLookup.email,
         subject: title,
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #333;">
