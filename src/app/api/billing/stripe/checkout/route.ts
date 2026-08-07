@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to initialize Stripe checkout' }, { status: 400 });
     }
   } catch (err: unknown) {
-    if (err.message === 'NEXT_REDIRECT') throw err;
+    if ((err instanceof Error ? err.message : String(err)) === 'NEXT_REDIRECT') throw err;
     console.error('Stripe init error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: (err instanceof Error ? err.message : String(err)) }, { status: 500 });
   }
 }

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         event = JSON.parse(rawBody);
       }
     } catch (err: unknown) {
-      return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
+      return NextResponse.json({ error: `Webhook Error: ${(err instanceof Error ? err.message : String(err))}` }, { status: 400 });
     }
 
     if (event.type === 'checkout.session.completed') {

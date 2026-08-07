@@ -182,7 +182,7 @@ export async function bulkImportMembers(csvContent: string) {
     revalidatePath('/admin/members')
     return { success: true, results }
   } catch (error: unknown) {
-    return { success: false, error: error.message }
+    return { success: false, error: (error instanceof Error ? error.message : String(error)) }
   }
 }
 
@@ -211,6 +211,6 @@ export async function toggleUserStatus(userId: string) {
     revalidatePath('/admin/members')
     return { success: true, active: updated.active }
   } catch (error: unknown) {
-    return { success: false, error: error.message }
+    return { success: false, error: (error instanceof Error ? error.message : String(error)) }
   }
 }

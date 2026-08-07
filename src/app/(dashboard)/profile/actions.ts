@@ -28,7 +28,7 @@ export async function updateProfile(formData: FormData) {
     revalidatePath('/profile')
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error.message }
+    return { success: false, error: (error instanceof Error ? error.message : String(error)) }
   }
 }
 
@@ -52,11 +52,11 @@ export async function updatePassword(formData: FormData) {
     })
 
     if (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: (error instanceof Error ? error.message : String(error)) }
     }
 
     return { success: true }
   } catch (error: unknown) {
-    return { success: false, error: error.message }
+    return { success: false, error: (error instanceof Error ? error.message : String(error)) }
   }
 }

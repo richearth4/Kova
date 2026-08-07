@@ -30,7 +30,7 @@ export default function AdminBillingDashboard() {
         window.location.href = data.url;
       }
     } catch (err: unknown) {
-      toast.error(err.message, { id: loadingToast });
+      toast.error((err instanceof Error ? err.message : String(err)), { id: loadingToast });
     } finally {
       setLoading(null);
     }

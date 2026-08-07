@@ -64,7 +64,7 @@ function MockCheckoutContent() {
       }, 1500);
 
     } catch (err: unknown) {
-      toast.error(err.message, { id: toastId });
+      toast.error((err instanceof Error ? err.message : String(err)), { id: toastId });
       setLoading(false);
     }
   };
