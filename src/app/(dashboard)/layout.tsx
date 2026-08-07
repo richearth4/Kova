@@ -1,6 +1,6 @@
 import { requireAuth } from '@/lib/auth'
 import Link from 'next/link'
-import { logout } from '@/app/login/actions'
+import { logout } from '@/app/(auth)/login/actions'
 import { prisma } from '@/lib/prisma'
 import NotificationBell from '@/components/NotificationBell'
 import { ThemeToggle } from '@/components/ThemeToggle'
