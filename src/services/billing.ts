@@ -4,9 +4,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock', {
   apiVersion: '2023-10-16' as any,
 });
 
+const isMock = process.env.MOCK_PAYMENTS === 'true' || process.env.NODE_ENV === 'development';
+
 export const BillingService = {
   // PAYSTACK
   async createPaystackTransaction(email: string, amountNGN: number, reference: string) {
+    if (isMock && !process.env.PAYSTACK_SECRET_KEY) {
+      return {
+        status: true,
+        data: {
+          authorization_url: `/mock-checkout?gateway=paystack&reference=${reference}&amount=${amountNGN}`
+        }
+      };
+    }
+
     const response = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
@@ -24,6 +35,10 @@ export const BillingService = {
   },
 
   async verifyPaystackTransaction(reference: string) {
+    if (isMock && !process.env.PAYSTACK_SECRET_KEY) {
+      return { status: true, data: { status: 'success' } };
+    }
+
     const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
       headers: {
         Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`
@@ -34,6 +49,12 @@ export const BillingService = {
 
   // STRIPE
   async createStripeCheckoutSession(email: string, amountNGN: number, reference: string, successUrl: string, cancelUrl: string) {
+    if (isMock && !process.env.STRIPE_SECRET_KEY) {
+      return {
+        url: `/mock-checkout?gateway=stripe&reference=${reference}&amount=${amountNGN}`
+      };
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       customer_email: email,
@@ -59,7 +80,6 @@ export const BillingService = {
 
   // PAYPAL (Mock/Placeholder for checkout sdk logic)
   async createPayPalOrder(amountNGN: number) {
-    // Requires setting up a PayPal App and fetching access token
     return {
       status: 'MOCK_PAYPAL_ORDER_CREATED',
       amount: amountNGN

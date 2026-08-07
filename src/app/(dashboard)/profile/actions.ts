@@ -27,7 +27,7 @@ export async function updateProfile(formData: FormData) {
 
     revalidatePath('/profile')
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: error.message }
   }
 }
@@ -56,7 +56,7 @@ export async function updatePassword(formData: FormData) {
     }
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: error.message }
   }
 }

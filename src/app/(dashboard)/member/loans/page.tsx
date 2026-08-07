@@ -1,7 +1,6 @@
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import LoanApplicationForm from './LoanApplicationForm'
-import RepaymentForm from './RepaymentForm'
 import LoanStatementButton from './LoanStatementButton'
 
 export default async function LoansPage() {

@@ -21,7 +21,7 @@ export async function uploadLoanRepayment(formData: FormData) {
   const fileExt = file.name.split('.').pop()
   const fileName = `repayments/${dbUser.id}/${Date.now()}.${fileExt}`
   
-  const { data: storageData, error: storageError } = await supabase.storage
+  const { error: storageError } = await supabase.storage
     .from('payment-proofs')
     .upload(fileName, file)
 

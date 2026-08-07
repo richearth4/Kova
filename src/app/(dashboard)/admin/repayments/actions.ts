@@ -175,7 +175,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
           })
         })
         results.success++
-      } catch (err: any) {
+      } catch (err: unknown) {
         results.failed++
         results.errors.push(`${entry.staffId}: ${err.message}`)
       }

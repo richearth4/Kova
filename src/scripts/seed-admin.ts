@@ -1,8 +1,13 @@
 import 'dotenv/config'
 import { prisma } from '../lib/prisma'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 async function seedAdmin() {
-  const userId = '6fe5b7a6-fb83-47e1-a642-23d1d4d79912'
   const email = 'admin@coopapp.com' // You can update this later
 
   console.log('Seeding admin user...')
@@ -13,6 +18,30 @@ async function seedAdmin() {
       update: {},
       create: { name: 'System Organization', slug: 'system-org' }
     })
+
+    // 1. Get User ID (Create or Fetch)
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password: 'Password123!',
+      email_confirm: true
+    })
+
+    let userId = authUser?.user?.id
+
+    if (!userId) {
+      // Fetch existing user
+      const { data: { users: existingUsers } } = await supabase.auth.admin.listUsers()
+      userId = existingUsers.find(au => au.email === email)?.id
+    }
+
+    if (!userId) {
+      console.error(`❌ Could not find or create ID for ${email}`)
+      return
+    }
+
+    // Clean up any stale prisma record with this email but a different ID 
+    // (caused by previous seed runs before Supabase Auth sync was added)
+    await prisma.user.deleteMany({ where: { email, id: { not: userId } } })
 
     const user = await prisma.user.upsert({
       where: { id: userId },
