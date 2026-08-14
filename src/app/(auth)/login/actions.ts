@@ -28,9 +28,23 @@ export async function login(formData: FormData) {
 
   if (!dbUser) {
     console.log(`[AUTH] Healing missing Prisma record for user: ${data.user.email}`)
+    const tenantId = data.user.user_metadata?.tenantId || 'unassigned'
+
+    if (tenantId === 'unassigned') {
+      await prisma.organization.upsert({
+        where: { id: 'unassigned' },
+        update: {},
+        create: {
+          id: 'unassigned',
+          name: 'Unassigned Workspace',
+          slug: 'unassigned'
+        }
+      })
+    }
+
     await prisma.user.create({
       data: {
-        tenantId: data.user.user_metadata?.tenantId || 'unassigned',
+        tenantId,
         id: data.user.id,
         email: data.user.email!,
         firstName: data.user.user_metadata?.firstName || 'User',

@@ -31,9 +31,23 @@ export async function register(formData: FormData) {
 
   // 2. Create user in Prisma DB
   try {
+    const tenantId = authData.user.user_metadata?.tenantId || 'unassigned'
+
+    if (tenantId === 'unassigned') {
+      await prisma.organization.upsert({
+        where: { id: 'unassigned' },
+        update: {},
+        create: {
+          id: 'unassigned',
+          name: 'Unassigned Workspace',
+          slug: 'unassigned'
+        }
+      })
+    }
+
     await prisma.user.create({
       data: {
-        tenantId: authData.user.user_metadata?.tenantId || 'unassigned',
+        tenantId,
         id: authData.user.id,
         email,
         firstName,
