@@ -12,11 +12,17 @@ export default async function DashboardLayout({
 }) {
   const { dbUser } = await requireAuth()
 
-  const notifications = await prisma.notification.findMany({
-    where: { userId: dbUser.id },
-    orderBy: { createdAt: 'desc' },
-    take: 20
-  })
+  const [notifications, tenant] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId: dbUser.id },
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    }),
+    prisma.organization.findUnique({
+      where: { id: dbUser.tenantId },
+      select: { name: true, slug: true }
+    })
+  ])
 
   return (
     <div className="flex h-screen bg-background">
@@ -34,7 +40,8 @@ export default async function DashboardLayout({
               </svg>
             </div>
             <div>
-              <span className="kova-logo-text text-white text-sm tracking-tight">KOVA</span>
+              <span className="kova-logo-text text-white text-sm tracking-tight font-bold">{tenant?.name || 'KOVA'}</span>
+              <p className="text-[7px] font-bold text-emerald-400 uppercase tracking-widest leading-none mt-0.5">{tenant?.slug}.kova.network</p>
             </div>
           </div>
         </div>
@@ -141,7 +148,7 @@ export default async function DashboardLayout({
         <header className="h-14 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">KOVA Network · Secure</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tenant?.name || 'KOVA'} Cooperative</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right hidden md:block">
