@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export function RegisterSW() {
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && window.workbox === undefined) {
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && (window as any).workbox === undefined) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
           .register('/sw.js')
