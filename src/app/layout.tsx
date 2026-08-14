@@ -41,9 +41,11 @@ export const metadata: Metadata = {
       { rel: "mask-icon", url: "/icon.svg", color: "#10B981" },
     ],
   },
+  manifest: "/manifest.json",
 };
 
 import { Toaster } from 'sonner';
+import { RegisterSW } from '@/components/RegisterSW';
 
 export default function RootLayout({
   children,
@@ -63,6 +65,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <RegisterSW />
           {children}
           <Toaster 
             position="top-right"

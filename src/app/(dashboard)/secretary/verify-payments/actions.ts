@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache'
 import { createNotification } from '@/lib/notifications'
 import { logAudit } from '@/lib/audit'
 
+import { recordMemberContribution, recordLoanRepayment } from '@/lib/ledger'
+
 export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'REJECTED', type: string) {
   const dbUser = await requireRole(['SECRETARY', 'ADMIN'])
 
@@ -39,6 +41,18 @@ export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'RE
             })
           }
         }
+
+        if (status === 'CONFIRMED') {
+          await recordMemberContribution(
+            dbUser.tenantId,
+            payment.userId,
+            Number(payment.amount),
+            payment.id,
+            `Contribution verified by ${dbUser.email}`,
+            tx
+          )
+        }
+
         return { userId: payment.userId, amount: payment.amount, type: 'Contribution' }
       } else {
         const repayment = await tx.loanRepayment.update({
@@ -46,6 +60,18 @@ export async function verifyPayment(paymentId: string, status: 'CONFIRMED' | 'RE
           data: { status },
           include: { loan: { include: { user: true } } }
         })
+
+        if (status === 'CONFIRMED') {
+          await recordLoanRepayment(
+            dbUser.tenantId,
+            repayment.loan.userId,
+            Number(repayment.amount),
+            repayment.id,
+            `Loan repayment verified by ${dbUser.email}`,
+            tx
+          )
+        }
+
         return { userId: repayment.loan.userId, amount: repayment.amount, type: 'Loan Repayment' }
       }
     })

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { recordMemberContribution, recordLoanRepayment } from '@/lib/ledger';
+import { createNotification, sendSMSNotification } from '@/lib/notifications';
+import { logAudit } from '@/lib/audit';
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,6 +62,99 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd: thirtyDaysFromNow,
               gateway: 'PAYSTACK'
            }
+        });
+      }
+    } else if (event.event === 'dedicatedaccount.payment.success') {
+      const accountNumber = event.data.dedicated_account.account_number;
+      // Paystack amount is in kobo, convert to Naira
+      const amount = event.data.amount / 100;
+      const paystackRef = event.data.reference;
+
+      // 1. Locate member by DVA Account Number
+      const user = await prisma.user.findFirst({
+        where: { dvaAccountNumber: accountNumber }
+      });
+
+      if (user) {
+        await prisma.$transaction(async (tx) => {
+          // Check for active loan to auto-allocate
+          const activeLoan = await tx.loan.findFirst({
+            where: { userId: user.id, status: 'ACTIVE' }
+          });
+
+          if (activeLoan) {
+            // Allocate to loan repayment
+            const repayment = await tx.loanRepayment.create({
+              data: {
+                tenantId: user.tenantId,
+                loanId: activeLoan.id,
+                amount: amount,
+                status: 'CONFIRMED'
+              }
+            });
+
+            await recordLoanRepayment(
+              user.tenantId,
+              user.id,
+              amount,
+              repayment.id,
+              `Paystack DVA auto-cleared repayment (Ref: ${paystackRef})`,
+              tx
+            );
+
+            // Close loan if fully paid
+            const allConfirmed = await tx.loanRepayment.aggregate({
+              where: { loanId: activeLoan.id, status: 'CONFIRMED' },
+              _sum: { amount: true }
+            });
+            const totalPaid = Number(allConfirmed._sum.amount || 0);
+            const totalOwed = Number(activeLoan.totalRepayment);
+
+            if (totalPaid >= totalOwed) {
+              await tx.loan.update({
+                where: { id: activeLoan.id },
+                data: { status: 'CLOSED' }
+              });
+              await sendSMSNotification(user.id, `Congratulations ${user.firstName}, your loan has been fully repaid via DVA transfer and is now CLOSED.`);
+            } else {
+              await sendSMSNotification(user.id, `DVA Payment: ₦${amount.toLocaleString()} received and credited to your active loan.`);
+            }
+          } else {
+            // No active loan, credit as monthly savings contribution
+            const contribution = await tx.contribution.create({
+              data: {
+                tenantId: user.tenantId,
+                userId: user.id,
+                amount: amount,
+                month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                status: 'CONFIRMED'
+              }
+            });
+
+            await recordMemberContribution(
+              user.tenantId,
+              user.id,
+              amount,
+              contribution.id,
+              `Paystack DVA auto-cleared contribution (Ref: ${paystackRef})`,
+              tx
+            );
+
+            await sendSMSNotification(user.id, `DVA Contribution: ₦${amount.toLocaleString()} received and credited to your savings pool.`);
+          }
+
+          await createNotification(
+            user.id,
+            'Automated Payment Cleared',
+            `Your bank transfer of ₦${amount.toLocaleString()} has been received and verified automatically.`
+          );
+
+          await logAudit({
+            action: 'DVA_PAYMENT_AUTOCLEAR',
+            entityId: user.id,
+            entityType: 'TRANSACTION',
+            details: { amount, reference: paystackRef, accountNumber }
+          });
         });
       }
     }

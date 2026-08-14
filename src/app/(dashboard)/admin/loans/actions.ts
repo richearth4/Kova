@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache'
 import { createNotification, sendSMSNotification } from '@/lib/notifications'
 import { logAudit } from '@/lib/audit'
 
+import { recordLoanDisbursement } from '@/lib/ledger'
+
 export async function reviewLoan(
   loanId: string, 
   status: 'APPROVED' | 'REJECTED' | 'ACTIVE',
@@ -14,10 +16,26 @@ export async function reviewLoan(
   const dbUser = await requireRole(['ADMIN', 'SECRETARY'])
 
   try {
-    const loan = await prisma.loan.update({
-      where: { id: loanId },
-      data: { status },
-      include: { user: true }
+    const loan = await prisma.$transaction(async (tx) => {
+      const updatedLoan = await tx.loan.update({
+        where: { id: loanId },
+        data: { status },
+        include: { user: true }
+      })
+
+      if (status === 'ACTIVE') {
+        await recordLoanDisbursement(
+          dbUser.tenantId,
+          updatedLoan.userId,
+          Number(updatedLoan.principal),
+          Number(updatedLoan.interestAmount),
+          updatedLoan.id,
+          `Loan disbursement activated by ${dbUser.email}`,
+          tx
+        )
+      }
+
+      return updatedLoan
     })
 
     const notifTitle = status === 'REJECTED' 

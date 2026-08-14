@@ -5,6 +5,7 @@ import { requireRole } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import { createNotification, sendSMSNotification } from '@/lib/notifications'
 import { logAudit } from '@/lib/audit'
+import { recordMemberContribution, recordLoanRepayment } from '@/lib/ledger'
 
 export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRMED' | 'REJECTED') {
   const dbUser = await requireRole(['ADMIN', 'SECRETARY'])
@@ -19,6 +20,15 @@ export async function verifyLoanRepayment(repaymentId: string, status: 'CONFIRME
 
       // Auto-close loan when fully repaid
       if (status === 'CONFIRMED') {
+        await recordLoanRepayment(
+          dbUser.tenantId,
+          updated.loan.userId,
+          Number(updated.amount),
+          updated.id,
+          `Loan repayment verified by admin ${dbUser.email}`,
+          tx
+        )
+
         const allConfirmed = await tx.loanRepayment.aggregate({
           where: { loanId: updated.loanId, status: 'CONFIRMED' },
           _sum: { amount: true }
@@ -107,7 +117,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
             const activeLoan = user.loans[0]
             if (!activeLoan) throw new Error(`No active loan found for Staff ID ${entry.staffId}`)
 
-            await tx.loanRepayment.create({
+            const repayment = await tx.loanRepayment.create({
               data: {
                 tenantId: dbUser.tenantId,
                 loanId: activeLoan.id,
@@ -115,6 +125,15 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
                 status: 'CONFIRMED',
               }
             })
+
+            await recordLoanRepayment(
+              dbUser.tenantId,
+              user.id,
+              entry.amount,
+              repayment.id,
+              `Bulk HR deduction loan repayment`,
+              tx
+            )
 
             const allConfirmed = await tx.loanRepayment.aggregate({
               where: { loanId: activeLoan.id, status: 'CONFIRMED' },
@@ -143,7 +162,7 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
               resolvedGoalId = target.id
             }
 
-            await tx.contribution.create({
+            const contribution = await tx.contribution.create({
               data: {
                 tenantId: dbUser.tenantId,
                 userId: user.id,
@@ -153,6 +172,15 @@ export async function processBulkTransactions(data: { staffId: string, amount: n
                 savingsTargetId: resolvedGoalId
               }
             })
+
+            await recordMemberContribution(
+              dbUser.tenantId,
+              user.id,
+              entry.amount,
+              contribution.id,
+              `Bulk HR deduction contribution`,
+              tx
+            )
 
             // Update SavingsTarget.savedAmount if linked
             if (resolvedGoalId) {
