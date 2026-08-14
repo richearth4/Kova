@@ -1,7 +1,13 @@
 import { prisma } from './prisma'
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || ''
-const isMock = process.env.MOCK_PAYMENTS === 'true' || process.env.NODE_ENV === 'development' || !PAYSTACK_SECRET
+const isMock = 
+  process.env.MOCK_PAYMENTS === 'true' || 
+  process.env.NODE_ENV === 'development' || 
+  !PAYSTACK_SECRET || 
+  PAYSTACK_SECRET.startsWith('re_placeholder') ||
+  PAYSTACK_SECRET.startsWith('pk_test_placeholder') ||
+  PAYSTACK_SECRET === 'paystack_test_placeholder';
 
 export interface DVAResponse {
   accountNumber: string
