@@ -12,16 +12,23 @@ export async function POST(req: NextRequest) {
 
     // If onboarding (we have orgName and slug), create a pending Organization
     if (orgName && slug && !orgId) {
-      // Check if slug is taken
-      const existing = await prisma.organization.findUnique({ where: { slug } });
-      if (existing) {
-        return NextResponse.json({ error: 'Workspace URL slug is already taken' }, { status: 400 });
-      }
-
-      const org = await prisma.organization.create({
-        data: { name: orgName, slug }
+      // Check if slug is taken and has active users attached
+      const existing = await prisma.organization.findUnique({
+        where: { slug },
+        include: { users: { select: { id: true } } }
       });
-      targetOrgId = org.id;
+
+      if (existing) {
+        if (existing.users.length > 0) {
+          return NextResponse.json({ error: 'Workspace URL slug is already taken' }, { status: 400 });
+        }
+        targetOrgId = existing.id;
+      } else {
+        const org = await prisma.organization.create({
+          data: { name: orgName, slug }
+        });
+        targetOrgId = org.id;
+      }
 
       // Ensure the admin user is attached to this tenant
       await prisma.user.update({

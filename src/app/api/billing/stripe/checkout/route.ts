@@ -11,15 +11,22 @@ export async function POST(req: NextRequest) {
     let targetOrgId = orgId || dbUser.tenantId;
 
     if (orgName && slug && !orgId) {
-      const existing = await prisma.organization.findUnique({ where: { slug } });
-      if (existing) {
-        return NextResponse.json({ error: 'Workspace URL slug is already taken' }, { status: 400 });
-      }
-
-      const org = await prisma.organization.create({
-        data: { name: orgName, slug }
+      const existing = await prisma.organization.findUnique({
+        where: { slug },
+        include: { users: { select: { id: true } } }
       });
-      targetOrgId = org.id;
+
+      if (existing) {
+        if (existing.users.length > 0) {
+          return NextResponse.json({ error: 'Workspace URL slug is already taken' }, { status: 400 });
+        }
+        targetOrgId = existing.id;
+      } else {
+        const org = await prisma.organization.create({
+          data: { name: orgName, slug }
+        });
+        targetOrgId = org.id;
+      }
 
       await prisma.user.update({
         where: { id: dbUser.id },
