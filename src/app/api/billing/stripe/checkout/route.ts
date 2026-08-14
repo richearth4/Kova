@@ -30,14 +30,14 @@ export async function POST(req: NextRequest) {
 
       await prisma.user.update({
         where: { id: dbUser.id },
-        data: { tenantId: org.id }
+        data: { tenantId: targetOrgId }
       });
 
       // Sync with Supabase Auth to update the session JWT immediately
       const { createClient } = await import('@/lib/supabase/server');
       const supabase = await createClient();
       await supabase.auth.updateUser({
-        data: { tenantId: org.id }
+        data: { tenantId: targetOrgId }
       });
     }
 
